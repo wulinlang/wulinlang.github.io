@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>python学习笔记</title>
+    <url>/2020/12/15/Python%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>记录python学习过程中的一些容易忘的点</p>
+<a id="more"></a>
+
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h3><p>单行注释：#</p>
+<p>多行注释：三个单引号(‘’’)或三个双引号(“””)</p>
+<blockquote>
+<p>#!/usr/bin/python<br># -<em>- coding: UTF-8 -</em>-<br># 文件名：test.py<br>‘’’<br>这是多行注释，使用单引号。<br>这是多行注释，使用单引号。<br>这是多行注释，使用单引号。<br>‘’’<br>“””<br>这是多行注释，使用双引号。<br>这是多行注释，使用双引号。<br>这是多行注释，使用双引号。<br>“””</p>
+</blockquote>
+<h3 id="import-与-from…import"><a href="#import-与-from…import" class="headerlink" title="import 与 from…import"></a>import 与 from…import</h3><ul>
+<li>导入整个模块：import somemodule</li>
+<li>导入某个函数：from somemodule import somefunction</li>
+<li>导入多个函数：from somemodule impprt firstfunc, secondfunc, thirdfunc</li>
+<li>导入全部函数：from somemodule import *</li>
+</ul>
+<blockquote>
+<p>导入 sys 模块</p>
+<figure class="highlight py"><table><tr><td class="code"><pre><span class="line">&gt;<span class="keyword">import</span> sys </span><br><span class="line">&gt;print(<span class="string">&#x27;======Python import mode=======&#x27;</span>) </span><br><span class="line">&gt;<span class="built_in">print</span> (<span class="string">&#x27;命令行参数为:&#x27;</span>) </span><br><span class="line">&gt;<span class="keyword">for</span> i <span class="keyword">in</span> sys.argv: </span><br><span class="line"><span class="built_in">print</span> (i) </span><br><span class="line">&gt;<span class="built_in">print</span> (<span class="string">&#x27;\n python 路径为&#x27;</span>,sys.path)</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h2 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h2><p>Python3 中有六个标准的数据类型：(前三个是不可变数据，后三个是可变数据)；</p>
+<p>用type()函数查看类型，用isinstance()来判断数据类型和判断父子类型；</p>
+<blockquote>
+<ul>
+<li>Number（数字）</li>
+<li>String（字符串）</li>
+<li>List（列表）</li>
+<li>Tuple（元组）</li>
+<li>Set（集合）</li>
+<li>Dictionary（字典）</li>
+</ul>
+</blockquote>
+<h3 id="数字（Number）类型"><a href="#数字（Number）类型" class="headerlink" title="数字（Number）类型"></a>数字（Number）类型</h3><p>python中数字有四种类型：整数、布尔型、浮点数和复数。</p>
+<ul>
+<li>int(整数)，只有一种整数类型int，表示为长整型，没有python2中的Long</li>
+<li>bool(布尔)，True和False</li>
+<li>float(浮点数)，如1.23</li>
+<li>complex(复数)，如1+2j</li>
+</ul>
+<h3 id="字符串（String"><a href="#字符串（String" class="headerlink" title="字符串（String)"></a>字符串（String)</h3><ul>
+<li>python中单引号和双引号使用完全相同，使用三引号(‘’’或”””)可以指定一个多行字符串;</li>
+<li>转义符 ‘&#39;，用r可以让反斜杠不发生转义，r”this is a line with \n” 则\n会显示，并不是换行；</li>
+<li>Python 中的字符串有两种索引方式，从左往右以 0 开始，从右往左以 -1 开始；</li>
+<li>Python 没有单独的字符类型，一个字符就是长度为 1 的字符串</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2020/12/12/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>Hadoop集群搭建总结</title>
+    <url>/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<p><img src="/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/rrr.png" alt="指南"></p>
+]]></content>
+      <tags>
+        <tag>hadoop</tag>
+      </tags>
+  </entry>
+</search>
