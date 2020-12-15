@@ -6,8 +6,7 @@
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 5.2.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icon.jpg">
   <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
 <link rel="stylesheet" href="/css/main.css">
@@ -20,18 +19,18 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta property="og:type" content="article">
+  <meta name="description" content="hadoop集群搭建">
+<meta property="og:type" content="article">
 <meta property="og:title" content="Hadoop集群搭建总结">
 <meta property="og:url" content="http://example.com/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="琳琅博客">
+<meta property="og:description" content="hadoop集群搭建">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/rrr.png">
 <meta property="article:published_time" content="2020-12-15T11:43:41.000Z">
-<meta property="article:modified_time" content="2020-12-15T11:45:19.520Z">
+<meta property="article:modified_time" content="2020-12-15T12:18:05.045Z">
 <meta property="article:author" content="Wu linlang">
 <meta property="article:tag" content="hadoop">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/rrr.png">
 
 <link rel="canonical" href="http://example.com/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/">
 
@@ -219,10 +218,17 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2020-12-15 19:43:41 / Modified: 19:45:19" itemprop="dateCreated datePublished" datetime="2020-12-15T19:43:41+08:00">2020-12-15</time>
+              <time title="Created: 2020-12-15 19:43:41 / Modified: 20:18:05" itemprop="dateCreated datePublished" datetime="2020-12-15T19:43:41+08:00">2020-12-15</time>
             </span>
 
           
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
         </div>
       </header>
@@ -233,7 +239,168 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p><img src="/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/rrr.png" alt="指南"></p>
+        <p>hadoop集群搭建</p>
+<a id="more"></a>
+
+<h2 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h2><ul>
+<li>1 将<strong>每台</strong>服务器的防火墙关闭<blockquote>
+<p>systemctl status firewalld.service  #查看防火墙状态<br>systemctl stop firewalld.service  #关闭防火墙<br>systemctl disable firewalld.service  #禁止防火墙开机启动</p>
+</blockquote>
+</li>
+<li>2 配置hosts文件<blockquote>
+<p>在主节点上编辑hosts文件<br>vi /etc/hosts<br>配置的内容如下：<br>172.19.241.* master<br>172.19.241.* slave2<br>172.19.241.* slave3<br>172.19.241.* slave1</p>
+</blockquote>
+</li>
+<li>3 设置免密登录<blockquote>
+<p>选则一台服务器作为主节点，然后在该节点生成公钥<br>ssh-keygen -t rsa<br>然后把公钥发送到<strong>各个从节点</strong><br>ssh-copy-id slave1<br>第一次需要密码，设置完成后，主节点访问各从节点就不再需要输入密码了</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="主节点安装"><a href="#主节点安装" class="headerlink" title="主节点安装"></a>主节点安装</h2><p>下面的操作均在主节点上完成</p>
+<h3 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h3><ul>
+<li><p>1 JDK下载<br><a target="_blank" rel="noopener" href="https://www.oracle.com/technetwork/java/javase/downloads">https://www.oracle.com/technetwork/java/javase/downloads</a></p>
+</li>
+<li><p>2 将下载好的JDK上传到主节点</p>
+</li>
+<li><p>3 解压</p>
+<blockquote>
+<p>在/usr/local下创建文件夹 java<br>mkdir /usr/local/java<br>然后将jdk解压到该文件夹下<br>tar -zxvf jdk-8u231-linux-x64.tar.gz -C /usr/local/java</p>
+</blockquote>
+</li>
+<li><p>4 配置JAVA_HOME</p>
+<blockquote>
+<p>vi /etc/bashrc<br>在文件的末尾添加如下内容：</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/usr/local/java/jdk1<span class="number">.8</span><span class="number">.0_231</span></span><br><span class="line">export JRE_HOME=$&#123;JAVA_HOME&#125;/jre</span><br><span class="line">export PATH=$&#123;JAVA_HOME&#125;/bin:$PATH</span><br></pre></td></tr></table></figure></li>
+<li><p>5 验证<br>source /etc/bashrc<br>然后输入 java -version</p>
+<h3 id="安装Hadoop"><a href="#安装Hadoop" class="headerlink" title="安装Hadoop"></a>安装Hadoop</h3></li>
+<li><p>1 下载<br><a target="_blank" rel="noopener" href="https://hadoop.apache.org/releases.html">https://hadoop.apache.org/releases.html</a></p>
+</li>
+<li><p>2 上传并解压</p>
+<blockquote>
+<p>mkdir /usr/local/hadoop<br>tar -zxvf hadoop-2.10.1.tar.gz -C /usr/local/hadoop</p>
+</blockquote>
+</li>
+<li><p>3 配置环境变量</p>
+<blockquote>
+<p>cat &gt;&gt; /etc/profile &lt;&lt;EOF<br>#Hadoop<br>export HADOOP_HOME=/usr/local/hadoop/hadoop-2.10.0<br>export PATH=$PATH:$HADOOP_HOME/bin<br>EOF</p>
+</blockquote>
+</li>
+<li><p>4 检验</p>
+<blockquote>
+<p>source /etc/profile<br>hadoop version</p>
+</blockquote>
+<h3 id="Hadoop配置文件"><a href="#Hadoop配置文件" class="headerlink" title="Hadoop配置文件"></a>Hadoop配置文件</h3><p>主要需要的配置文件有core-site.xml，hdfs-site.xml，mapred-site.xml，yarn-site.xml，masters，slaves</p>
+</li>
+<li><p>1 core配置</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/core-site.xml</p>
+</blockquote>
+<p>修改其内容为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;hadoop.tmp.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;file:&#x2F;usr&#x2F;local&#x2F;hadoop&#x2F;tmp&lt;&#x2F;value&gt;</span><br><span class="line">        &lt;description&gt;Abase for other temporary directories.&lt;&#x2F;description&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;fs.defaultFS&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;hdfs:&#x2F;&#x2F;master:9000&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>2 hdfs配置</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/hdfs-site.xml</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.replication&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;3&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.name.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;&#x2F;usr&#x2F;local&#x2F;hadoop&#x2F;hdfs&#x2F;name&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.data.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;&#x2F;usr&#x2F;local&#x2F;hadoop&#x2F;hdfs&#x2F;data&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>3 mapred配置</p>
+<blockquote>
+<p>复制<br>cp /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/mapred-site.xml.template /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/mapred-site.xml<br>然后再编辑<br>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/mapred-site.xml</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;mapreduce.framework.name&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;yarn&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">      &lt;name&gt;mapred.job.tracker&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;http:&#x2F;&#x2F;master:9001&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>4 yarn配置</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/yarn-site.xml</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.nodemanager.aux-services&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;mapreduce_shuffle&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.resourcemanager.hostname&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;master&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>5 master配置<br>新建master文件</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/masters</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">master</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>6 slaves配置</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/slaves</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">slave1</span><br><span class="line">slave2</span><br><span class="line">slave3</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<h2 id="从节点配置"><a href="#从节点配置" class="headerlink" title="从节点配置"></a>从节点配置</h2><ul>
+<li><p>1 将jdk分发到各从节点</p>
+<blockquote>
+<p>scp jdk-8u231-linux-x64.tar.gz slave1:/usr/local</p>
+</blockquote>
+<p>然后解压到/usr/local/java下</p>
+</li>
+<li><p>2 将hadoop分发到各从节点<br>首先将已经配置好的hadoop打一个包</p>
+<blockquote>
+<p>tar -zcvf hadoop.tar.gz /usr/local/hadoop</p>
+</blockquote>
+<p>然后将打好的包分到各从节点</p>
+<blockquote>
+<p>scp hadoop.tar.gz slave1:/usr/local</p>
+</blockquote>
+<p>再将该包解压</p>
+<blockquote>
+<p>tar -zxcf hadoop.tar.gz -C /usr/local</p>
+</blockquote>
+</li>
+<li><p>3 将几个配置文件分发到各从节点</p>
+<blockquote>
+<p>分发hosts文件<br>scp /etc/hosts slave1:/etc/<br>分发profile文件<br>scp /etc/profile slave1:/etc/<br>分发bashrc文件<br>scp /etc/bashrc slave1:/etc/</p>
+</blockquote>
+<p>然后检查一下配置是否生效</p>
+<blockquote>
+<p>source /etc/profile<br>source /etc/bashrc<br>java -version<br>hadoop version</p>
+</blockquote>
+<p>如果都没有问题,那就表明已经配置完成了,下面就是启动</p>
+</li>
+</ul>
+<h2 id="Hadoop启动"><a href="#Hadoop启动" class="headerlink" title="Hadoop启动"></a>Hadoop启动</h2><p><strong>集群启动</strong>,在主节点操作:</p>
+<ul>
+<li><p>1 <strong>格式化namenode</strong><br>第一次启动服务前需要执行词操作，以后就不需要执行了。</p>
+<blockquote>
+<p>hadoop namenode -format</p>
+</blockquote>
+</li>
+<li><p>2 启动</p>
+<blockquote>
+<p>cd /usr/local/hadoop/hadoop-2.10.0<br>sbin/start-all.sh</p>
+</blockquote>
+</li>
+<li><p>3 检查<br>用jps命令查看是否启动成功<br>主节点有Namenode和ResourceManager进程<br>从节点有Datanode和NodeManager进程</p>
+</li>
+<li><p>4 可视化查看<br>hdfs访问  <a target="_blank" rel="noopener" href="http://master:50070/">http://master:50070/</a><br>yarn访问  <a target="_blank" rel="noopener" href="http://master:8088/">http://master:8088/</a></p>
+</li>
+</ul>
 
     </div>
 
@@ -314,6 +481,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.</span> <span class="nav-text">基础环境准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%8A%82%E7%82%B9%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">主节点安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85JDK"><span class="nav-number">2.1.</span> <span class="nav-text">安装JDK</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Hadoop"><span class="nav-number">2.2.</span> <span class="nav-text">安装Hadoop</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hadoop%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">2.3.</span> <span class="nav-text">Hadoop配置文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E8%8A%82%E7%82%B9%E9%85%8D%E7%BD%AE"><span class="nav-number">3.</span> <span class="nav-text">从节点配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hadoop%E5%90%AF%E5%8A%A8"><span class="nav-number">4.</span> <span class="nav-text">Hadoop启动</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -329,7 +497,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-count">2</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -373,6 +541,26 @@
   </div>
 
         
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
 
 
 

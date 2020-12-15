@@ -1,6 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Hadoop集群搭建总结</title>
+    <url>/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<p>hadoop集群搭建</p>
+<a id="more"></a>
+
+<h2 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h2><ul>
+<li>1 将<strong>每台</strong>服务器的防火墙关闭<blockquote>
+<p>systemctl status firewalld.service  #查看防火墙状态<br>systemctl stop firewalld.service  #关闭防火墙<br>systemctl disable firewalld.service  #禁止防火墙开机启动</p>
+</blockquote>
+</li>
+<li>2 配置hosts文件<blockquote>
+<p>在主节点上编辑hosts文件<br>vi /etc/hosts<br>配置的内容如下：<br>172.19.241.* master<br>172.19.241.* slave2<br>172.19.241.* slave3<br>172.19.241.* slave1</p>
+</blockquote>
+</li>
+<li>3 设置免密登录<blockquote>
+<p>选则一台服务器作为主节点，然后在该节点生成公钥<br>ssh-keygen -t rsa<br>然后把公钥发送到<strong>各个从节点</strong><br>ssh-copy-id slave1<br>第一次需要密码，设置完成后，主节点访问各从节点就不再需要输入密码了</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="主节点安装"><a href="#主节点安装" class="headerlink" title="主节点安装"></a>主节点安装</h2><p>下面的操作均在主节点上完成</p>
+<h3 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h3><ul>
+<li><p>1 JDK下载<br><a href="https://www.oracle.com/technetwork/java/javase/downloads">https://www.oracle.com/technetwork/java/javase/downloads</a></p>
+</li>
+<li><p>2 将下载好的JDK上传到主节点</p>
+</li>
+<li><p>3 解压</p>
+<blockquote>
+<p>在/usr/local下创建文件夹 java<br>mkdir /usr/local/java<br>然后将jdk解压到该文件夹下<br>tar -zxvf jdk-8u231-linux-x64.tar.gz -C /usr/local/java</p>
+</blockquote>
+</li>
+<li><p>4 配置JAVA_HOME</p>
+<blockquote>
+<p>vi /etc/bashrc<br>在文件的末尾添加如下内容：</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">export JAVA_HOME=/usr/local/java/jdk1<span class="number">.8</span><span class="number">.0_231</span></span><br><span class="line">export JRE_HOME=$&#123;JAVA_HOME&#125;/jre</span><br><span class="line">export PATH=$&#123;JAVA_HOME&#125;/bin:$PATH</span><br></pre></td></tr></table></figure></li>
+<li><p>5 验证<br>source /etc/bashrc<br>然后输入 java -version</p>
+<h3 id="安装Hadoop"><a href="#安装Hadoop" class="headerlink" title="安装Hadoop"></a>安装Hadoop</h3></li>
+<li><p>1 下载<br><a href="https://hadoop.apache.org/releases.html">https://hadoop.apache.org/releases.html</a></p>
+</li>
+<li><p>2 上传并解压</p>
+<blockquote>
+<p>mkdir /usr/local/hadoop<br>tar -zxvf hadoop-2.10.1.tar.gz -C /usr/local/hadoop</p>
+</blockquote>
+</li>
+<li><p>3 配置环境变量</p>
+<blockquote>
+<p>cat &gt;&gt; /etc/profile &lt;&lt;EOF<br>#Hadoop<br>export HADOOP_HOME=/usr/local/hadoop/hadoop-2.10.0<br>export PATH=$PATH:$HADOOP_HOME/bin<br>EOF</p>
+</blockquote>
+</li>
+<li><p>4 检验</p>
+<blockquote>
+<p>source /etc/profile<br>hadoop version</p>
+</blockquote>
+<h3 id="Hadoop配置文件"><a href="#Hadoop配置文件" class="headerlink" title="Hadoop配置文件"></a>Hadoop配置文件</h3><p>主要需要的配置文件有core-site.xml，hdfs-site.xml，mapred-site.xml，yarn-site.xml，masters，slaves</p>
+</li>
+<li><p>1 core配置</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/core-site.xml</p>
+</blockquote>
+<p>修改其内容为：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;hadoop.tmp.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;file:&#x2F;usr&#x2F;local&#x2F;hadoop&#x2F;tmp&lt;&#x2F;value&gt;</span><br><span class="line">        &lt;description&gt;Abase for other temporary directories.&lt;&#x2F;description&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;fs.defaultFS&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;hdfs:&#x2F;&#x2F;master:9000&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>2 hdfs配置</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/hdfs-site.xml</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.replication&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;3&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.name.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;&#x2F;usr&#x2F;local&#x2F;hadoop&#x2F;hdfs&#x2F;name&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.data.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;&#x2F;usr&#x2F;local&#x2F;hadoop&#x2F;hdfs&#x2F;data&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>3 mapred配置</p>
+<blockquote>
+<p>复制<br>cp /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/mapred-site.xml.template /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/mapred-site.xml<br>然后再编辑<br>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/mapred-site.xml</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;mapreduce.framework.name&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;yarn&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">      &lt;name&gt;mapred.job.tracker&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;http:&#x2F;&#x2F;master:9001&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>4 yarn配置</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/yarn-site.xml</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.nodemanager.aux-services&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;mapreduce_shuffle&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.resourcemanager.hostname&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;master&lt;&#x2F;value&gt;</span><br><span class="line">    &lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>5 master配置<br>新建master文件</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/masters</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">master</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>6 slaves配置</p>
+<blockquote>
+<p>vi /usr/local/hadoop/hadoop-2.10.0/etc/hadoop/slaves</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">slave1</span><br><span class="line">slave2</span><br><span class="line">slave3</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<h2 id="从节点配置"><a href="#从节点配置" class="headerlink" title="从节点配置"></a>从节点配置</h2><ul>
+<li><p>1 将jdk分发到各从节点</p>
+<blockquote>
+<p>scp jdk-8u231-linux-x64.tar.gz slave1:/usr/local</p>
+</blockquote>
+<p>然后解压到/usr/local/java下</p>
+</li>
+<li><p>2 将hadoop分发到各从节点<br>首先将已经配置好的hadoop打一个包</p>
+<blockquote>
+<p>tar -zcvf hadoop.tar.gz /usr/local/hadoop</p>
+</blockquote>
+<p>然后将打好的包分到各从节点</p>
+<blockquote>
+<p>scp hadoop.tar.gz slave1:/usr/local</p>
+</blockquote>
+<p>再将该包解压</p>
+<blockquote>
+<p>tar -zxcf hadoop.tar.gz -C /usr/local</p>
+</blockquote>
+</li>
+<li><p>3 将几个配置文件分发到各从节点</p>
+<blockquote>
+<p>分发hosts文件<br>scp /etc/hosts slave1:/etc/<br>分发profile文件<br>scp /etc/profile slave1:/etc/<br>分发bashrc文件<br>scp /etc/bashrc slave1:/etc/</p>
+</blockquote>
+<p>然后检查一下配置是否生效</p>
+<blockquote>
+<p>source /etc/profile<br>source /etc/bashrc<br>java -version<br>hadoop version</p>
+</blockquote>
+<p>如果都没有问题,那就表明已经配置完成了,下面就是启动</p>
+</li>
+</ul>
+<h2 id="Hadoop启动"><a href="#Hadoop启动" class="headerlink" title="Hadoop启动"></a>Hadoop启动</h2><p><strong>集群启动</strong>,在主节点操作:</p>
+<ul>
+<li><p>1 <strong>格式化namenode</strong><br>第一次启动服务前需要执行词操作，以后就不需要执行了。</p>
+<blockquote>
+<p>hadoop namenode -format</p>
+</blockquote>
+</li>
+<li><p>2 启动</p>
+<blockquote>
+<p>cd /usr/local/hadoop/hadoop-2.10.0<br>sbin/start-all.sh</p>
+</blockquote>
+</li>
+<li><p>3 检查<br>用jps命令查看是否启动成功<br>主节点有Namenode和ResourceManager进程<br>从节点有Datanode和NodeManager进程</p>
+</li>
+<li><p>4 可视化查看<br>hdfs访问  <a href="http://master:50070/">http://master:50070/</a><br>yarn访问  <a href="http://master:8088/">http://master:8088/</a></p>
+</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>python学习笔记</title>
     <url>/2020/12/15/Python%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>记录python学习过程中的一些容易忘的点</p>
@@ -49,33 +219,6 @@
 ]]></content>
       <tags>
         <tag>python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2020/12/12/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>Hadoop集群搭建总结</title>
-    <url>/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[<p><img src="/2020/12/15/Hadoop%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%80%BB%E7%BB%93/rrr.png" alt="指南"></p>
-]]></content>
-      <tags>
-        <tag>hadoop</tag>
       </tags>
   </entry>
 </search>
